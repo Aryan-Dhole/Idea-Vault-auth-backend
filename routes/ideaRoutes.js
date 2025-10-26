@@ -51,19 +51,26 @@ router1.put("/:id", protect, async (req, res) => {
 
 //Delete Idea
 router1.delete("/:id", protect, async (req, res) => {
+    console.log("DELETE hit:", req.params.id);
+    console.log("User from token:", req.user.id);
+
     try {
         const idea = await Idea.findById(req.params.id);
-        if (!idea) return res.status(404).json({ error: "Idea not found" });
+        if (!idea) {
+            console.log("No idea found");
+            return res.status(404).json({ error: "Idea not found" });
+        }
 
-        // ✅ Check ownership BEFORE deleting
-        if (idea.user.toString() !== req.user.id)
+        if (idea.user.toString() !== req.user.id) {
+            console.log("Not authorized:", idea.user.toString(), req.user.id);
             return res.status(403).json({ error: "Not authorized" });
+        }
 
         await Idea.findByIdAndDelete(req.params.id);
-
+        console.log("Deleted successfully");
         res.status(200).json({ message: "Idea deleted successfully" });
     } catch (err) {
-        console.error(err);
+        console.error("Server error:", err);
         res.status(500).json({ error: "Server error" });
     }
 });
